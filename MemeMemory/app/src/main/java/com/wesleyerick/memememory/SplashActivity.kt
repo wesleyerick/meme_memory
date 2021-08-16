@@ -16,6 +16,7 @@ import androidx.compose.material.Surface
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.Alignment.Companion.CenterVertically
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
@@ -58,32 +59,25 @@ class SplashActivity : AppCompatActivity() {
 @Composable
 fun SplashScreen(){
     MemeMemoryTheme {
-        Row(
-            modifier =
-            Modifier
-                .padding(all = 8.dp)
-                .fillMaxHeight()
+//        Modifier.align(CenterHorizontally)
+        Box(
+            modifier = Modifier.fillMaxSize(),
+            contentAlignment = Alignment.Center
         ) {
-//            Icon(
-//                painter = painterResource(id = R.drawable.ic_splash_will),
-//                tint= Color.Unspecified,
-//                contentDescription = stringResource(id = R.string.splash_img_description),
-//                modifier = Modifier.size(150.dp)
-//            )
+            Row{
 
-//            Spacer(modifier = Modifier.width(8.dp))
+                Icon(
+                    painter = painterResource(id = R.drawable.ic_baseline_android_24),
+                    tint= Color.Unspecified,
+                    contentDescription = stringResource(id = R.string.splash_img_description),
+                    modifier = Modifier.size(100.dp)
+                )
 
-            Surface(
-                shape = MaterialTheme.shapes.medium,
-                elevation = 1.dp,
-                modifier = Modifier
-                    .align(Alignment.CenterVertically).padding(end = 16.dp)
-            ) {
                 Text(
                     text = stringResource(id = R.string.splash_title),
                     color = MaterialTheme.colors.secondaryVariant,
-                    style = MaterialTheme.typography.subtitle2,
-                    modifier = Modifier.padding(4.dp)
+                    style = MaterialTheme.typography.h4,
+                    modifier = Modifier.padding(4.dp).align(CenterVertically)
                 )
             }
         }

@@ -66,5 +66,12 @@ dependencies {
 
     //Extended Material Icons
     implementation "androidx.compose.material:material-icons-extended:$compose_version"
-    implementation 'io.coil-kt:coil-compose:1.3.0'
+
+    //Coil (não funcionou)
+    implementation 'io.coil-kt:coil-compose:1.3.2'
+
+
+    //Glide
+    implementation 'com.github.bumptech.glide:glide:4.12.0'
+    annotationProcessor 'com.github.bumptech.glide:compiler:4.12.0'
 }
