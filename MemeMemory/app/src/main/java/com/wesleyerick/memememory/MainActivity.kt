@@ -9,13 +9,11 @@ import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.GridCells
 import androidx.compose.foundation.lazy.LazyVerticalGrid
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.Button
 import androidx.compose.material.MaterialTheme
@@ -25,8 +23,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Alignment.Companion.CenterHorizontally
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.scale
+import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
@@ -34,6 +31,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.wesleyerick.memememory.model.Meme
 import com.wesleyerick.memememory.ui.theme.MemeMemoryTheme
+import kotlinx.coroutines.*
 
 
 val memesList = mutableListOf(
@@ -62,17 +60,11 @@ val memesSampleList = mutableListOf(
 
 class MainActivity : ComponentActivity() {
 
-
     @ExperimentalFoundationApi
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
-            MemeMemoryTheme {
-                // A surface container using the 'background' color from the theme
-                Surface(color = MaterialTheme.colors.background) {
-                    BaseScreen()
-                }
-            }
+            StartGameScreen()
         }
     }
 }
@@ -94,10 +86,29 @@ private fun getRandomMemes(memesList: MutableList<Meme>): List<Meme> {
     return memesRandom
 }
 
+@ExperimentalFoundationApi
+@Composable
+fun StartGameScreen(){
+    var isStartGame by remember{ mutableStateOf(true) }
+
+    val ramdomMemesList = getRandomMemes(memesList)
+
+    MemeMemoryTheme {
+        // A surface container using the 'background' color from the theme
+        Surface(color = MaterialTheme.colors.background) {
+            BaseScreen(isStartGame = isStartGame, ramdomMemesList)
+            CoroutineScope(Dispatchers.Main).launch {
+                delay(3000)
+                isStartGame = false
+            }
+        }
+    }
+}
+
 
 @ExperimentalFoundationApi
 @Composable
-fun BaseScreen(){
+fun BaseScreen(isStartGame: Boolean, ramdomMemesList: List<Meme>){
 
     Column(
         modifier = Modifier
@@ -115,12 +126,12 @@ fun BaseScreen(){
 
         Spacer(modifier = Modifier.size(8.dp))
 
-        Memes(getRandomMemes(memesList))
+        Memes(ramdomMemesList, isStartGame)
 
         Spacer(modifier = Modifier.size(8.dp))
         
         Button(
-            onClick = { getRandomMemes(memesList) },
+            onClick = {},
             modifier =
             Modifier
                 .fillMaxWidth()
@@ -133,7 +144,7 @@ fun BaseScreen(){
 
 @ExperimentalFoundationApi
 @Composable
-fun Memes(memes: List<Meme>) {
+fun Memes(memes: List<Meme>, isStartGame: Boolean) {
     
     Column(
         verticalArrangement = Arrangement.Center,
@@ -143,16 +154,14 @@ fun Memes(memes: List<Meme>) {
             cells = GridCells.Fixed(3)
         ) {
             items(memes) { meme ->
-                MemeCard(meme)
+                MemeCard(meme, isStartGame)
             }
         }
     }
 }
 
 @Composable
-fun MemeCard(meme: Meme) {
-
-    val cornerShape = RoundedCornerShape(percent = 30)
+fun MemeCard(meme: Meme, isStartGame: Boolean) {
 
     // We keep track if the message is expanded or not in this
     // variable
@@ -178,39 +187,47 @@ fun MemeCard(meme: Meme) {
             .clickable { isExpanded = !isExpanded }
     ) {
 
-        Column(modifier = Modifier.padding(all = 16.dp)) {
+        Column {
 
-            if (isExpanded){
-                Image(
-                    painter = painterResource(id = meme.image),
-                    contentScale = ContentScale.Crop,
-                    contentDescription = meme.name,
-                    modifier =
-                    Modifier
-                        .width(80.dp)
-                        .height(80.dp)
-                        .border(2.dp, color = MaterialTheme.colors.secondary, cornerShape)
-                        .clip(cornerShape)
+            when {
+                isStartGame -> {
+                    Image(
+                        painter = painterResource(id = meme.image),
+                        contentScale = ContentScale.Crop,
+                        contentDescription = meme.name,
+                        modifier =
+                        Modifier
+                            .height(80.dp)
+                            .fillMaxWidth()
+                            .clipToBounds()
 
-                )
-
-            } else {
-//                Image(
-//                    painter = painterResource(id = R.drawable.ic_baseline_android_24),
-//                    contentDescription = meme.name,
-//                    modifier =
-//                    Modifier
-//                        .width(80.dp)
-//                )
-
-                Text(
-                    text = "?",
-                    modifier =
-                    Modifier
-                        .align(CenterHorizontally),
-                    style = MaterialTheme.typography.h5,
-                    color = MaterialTheme.colors.secondaryVariant,
                     )
+                }
+                isExpanded -> {
+                    Image(
+                        painter = painterResource(id = meme.image),
+                        contentScale = ContentScale.Crop,
+                        contentDescription = meme.name,
+                        modifier =
+                        Modifier
+                            .height(80.dp)
+                            .fillMaxWidth()
+                            .clipToBounds()
+
+                    )
+
+                }
+                else -> {
+                    Text(
+                        text = "?",
+                        modifier =
+                        Modifier
+                            .align(CenterHorizontally)
+                            .padding(16.dp),
+                        style = MaterialTheme.typography.h5,
+                        color = MaterialTheme.colors.secondaryVariant,
+                    )
+                }
             }
         }
     }
@@ -228,7 +245,5 @@ fun MemeCard(meme: Meme) {
 )
 @Composable
 fun DefaultPreview() {
-    MemeMemoryTheme {
-        BaseScreen()
-    }
+    StartGameScreen()
 }
