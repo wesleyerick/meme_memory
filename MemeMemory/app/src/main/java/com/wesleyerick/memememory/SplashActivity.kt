@@ -22,6 +22,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.wesleyerick.memememory.ui.theme.MemeMemoryTheme
@@ -52,6 +53,7 @@ class SplashActivity : AppCompatActivity() {
 
             val intent = Intent(this@SplashActivity, MainActivity::class.java)
             startActivity(intent)
+            finish()
         }
     }
 }
@@ -67,17 +69,22 @@ fun SplashScreen(){
             Row{
 
                 Icon(
-                    painter = painterResource(id = R.drawable.ic_baseline_android_24),
+                    painter = painterResource(id = R.drawable.gavin),
                     tint= Color.Unspecified,
                     contentDescription = stringResource(id = R.string.splash_img_description),
-                    modifier = Modifier.size(100.dp)
+                    modifier =
+                    Modifier
+                        .size(100.dp)
+                        .clip(CircleShape)
+                        .border(width = 2.dp, color = MaterialTheme.colors.secondary, shape = CircleShape)
                 )
 
                 Text(
                     text = stringResource(id = R.string.splash_title),
-                    color = MaterialTheme.colors.secondaryVariant,
-                    style = MaterialTheme.typography.h4,
-                    modifier = Modifier.padding(4.dp).align(CenterVertically)
+                    color = MaterialTheme.colors.secondary,
+                    style = MaterialTheme.typography.h3,
+                    modifier = Modifier.padding(8.dp).align(CenterVertically),
+                    fontFamily = FontFamily.Cursive
                 )
             }
         }

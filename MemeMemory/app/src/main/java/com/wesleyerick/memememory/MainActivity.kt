@@ -53,6 +53,7 @@ val memesList = mutableListOf(
 )
 
 var memeMatch: MutableList<Meme> = mutableListOf()
+var matchCount = 0
 
 class MainActivity : ComponentActivity() {
 
@@ -106,8 +107,6 @@ fun StartGameScreen() {
 @Composable
 fun BaseScreen(isStartGame: Boolean, ramdomMemesList: List<Meme>) {
 
-    val textTimer by remember { mutableStateOf(getCountDownStart()) }
-
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -127,49 +126,7 @@ fun BaseScreen(isStartGame: Boolean, ramdomMemesList: List<Meme>) {
         Spacer(modifier = Modifier.size(16.dp))
 
         Memes(ramdomMemesList, isStartGame)
-
-//        Spacer(modifier = Modifier.size(8.dp))
-
-        if (isStartGame)
-            Text(
-                text = textTimer,
-                style = MaterialTheme.typography.h6,
-                color = MaterialTheme.colors.secondary,
-                modifier = Modifier
-                    .align(CenterHorizontally)
-                    .padding(16.dp)
-            )
-
-//        Spacer(modifier = Modifier.size(8.dp))
-//
-//        Button(
-//            onClick = {},
-//            modifier =
-//            Modifier
-//                .fillMaxWidth()
-//                .padding(16.dp)
-//        ){
-//            Text(text = "REINICIAR")
-//        }
     }
-}
-
-fun getCountDownStart(): String {
-
-    var timer = ""
-
-    val countDown = object : CountDownTimer(3000, 1000) {
-        override fun onTick(millisUntilFinished: Long) {
-            timer = "${millisUntilFinished / 1000}"
-        }
-
-        override fun onFinish() {
-            cancel()
-        }
-    }
-
-    return timer
-
 }
 
 @ExperimentalFoundationApi
@@ -288,6 +245,7 @@ fun validateMatch(): Boolean {
 
     if (memeMatch.first() == memeMatch.last()) {
         println("Match!")
+        matchCount++
         isMatched = true
         memeMatch.clear()
     } else {
