@@ -2,6 +2,7 @@ package com.wesleyerick.memememory
 
 import android.content.res.Configuration
 import android.os.Bundle
+import android.os.CountDownTimer
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.animation.animateColorAsState
@@ -9,11 +10,13 @@ import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.GridCells
 import androidx.compose.foundation.lazy.LazyVerticalGrid
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.Button
 import androidx.compose.material.MaterialTheme
@@ -48,15 +51,8 @@ val memesList = mutableListOf(
     Meme("Pai de família", R.drawable.pai_de_familia_sucodelaranja),
     Meme("Okay", R.drawable.okay),
 )
-val memesSampleList = mutableListOf(
-    Meme("Ricardo", R.drawable.sample_ricardo),
-    Meme(
-        "Confia", R.drawable.confia),
-    Meme("Chico Buarque", R.drawable.chico_buarque),
-    Meme("Gavin", R.drawable.gavin),
-    Meme("Careta", R.drawable.laughing),
-    Meme("Nando Moura", R.drawable.nando_moura),
-)
+
+var memeMatch: MutableList<Meme> = mutableListOf()
 
 class MainActivity : ComponentActivity() {
 
@@ -76,7 +72,7 @@ private fun getRandomMemes(memesList: MutableList<Meme>): List<Meme> {
 
     repeat(memesFilter.size) {
         if (memesFilter.size != 6) {
-            memesFilter.removeAt((0..memesFilter.size).random())
+            memesFilter.removeAt((0 until memesFilter.size).random())
         }
     }
 
@@ -88,8 +84,8 @@ private fun getRandomMemes(memesList: MutableList<Meme>): List<Meme> {
 
 @ExperimentalFoundationApi
 @Composable
-fun StartGameScreen(){
-    var isStartGame by remember{ mutableStateOf(true) }
+fun StartGameScreen() {
+    var isStartGame by remember { mutableStateOf(true) }
 
     val ramdomMemesList = getRandomMemes(memesList)
 
@@ -108,7 +104,9 @@ fun StartGameScreen(){
 
 @ExperimentalFoundationApi
 @Composable
-fun BaseScreen(isStartGame: Boolean, ramdomMemesList: List<Meme>){
+fun BaseScreen(isStartGame: Boolean, ramdomMemesList: List<Meme>) {
+
+    val textTimer by remember { mutableStateOf(getCountDownStart()) }
 
     Column(
         modifier = Modifier
@@ -119,33 +117,65 @@ fun BaseScreen(isStartGame: Boolean, ramdomMemesList: List<Meme>){
     ) {
         Text(
             text = "Selecione os Memes Iguais",
-            style = MaterialTheme.typography.h6,
+            style = MaterialTheme.typography.h5,
             color = MaterialTheme.colors.secondary,
-            modifier = Modifier.align(CenterHorizontally)
+            modifier = Modifier
+                .align(CenterHorizontally)
+                .padding(16.dp)
         )
 
-        Spacer(modifier = Modifier.size(8.dp))
+        Spacer(modifier = Modifier.size(16.dp))
 
         Memes(ramdomMemesList, isStartGame)
 
-        Spacer(modifier = Modifier.size(8.dp))
-        
-        Button(
-            onClick = {},
-            modifier =
-            Modifier
-                .fillMaxWidth()
-                .padding(16.dp)
-        ){
-            Text(text = "REINICIAR")
+//        Spacer(modifier = Modifier.size(8.dp))
+
+        if (isStartGame)
+            Text(
+                text = textTimer,
+                style = MaterialTheme.typography.h6,
+                color = MaterialTheme.colors.secondary,
+                modifier = Modifier
+                    .align(CenterHorizontally)
+                    .padding(16.dp)
+            )
+
+//        Spacer(modifier = Modifier.size(8.dp))
+//
+//        Button(
+//            onClick = {},
+//            modifier =
+//            Modifier
+//                .fillMaxWidth()
+//                .padding(16.dp)
+//        ){
+//            Text(text = "REINICIAR")
+//        }
+    }
+}
+
+fun getCountDownStart(): String {
+
+    var timer = ""
+
+    val countDown = object : CountDownTimer(3000, 1000) {
+        override fun onTick(millisUntilFinished: Long) {
+            timer = "${millisUntilFinished / 1000}"
+        }
+
+        override fun onFinish() {
+            cancel()
         }
     }
+
+    return timer
+
 }
 
 @ExperimentalFoundationApi
 @Composable
 fun Memes(memes: List<Meme>, isStartGame: Boolean) {
-    
+
     Column(
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
@@ -169,10 +199,10 @@ fun MemeCard(meme: Meme, isStartGame: Boolean) {
 
     // surfaceColor will be updated gradually from one color to the other
     val surfaceColor: Color by animateColorAsState(
-        if (isExpanded) MaterialTheme.colors.primary else MaterialTheme.colors.surface,
+        if (isExpanded) MaterialTheme.colors.secondary else MaterialTheme.colors.surface,
     )
 
-    val radius by animateDpAsState( if (isExpanded) 8.dp else 24.dp )
+    val radius by animateDpAsState(if (isExpanded) 8.dp else 48.dp)
 
     Surface(
         shape = RoundedCornerShape(radius),
@@ -184,7 +214,18 @@ fun MemeCard(meme: Meme, isStartGame: Boolean) {
             .padding(all = 8.dp)
             .animateContentSize()
             .padding(1.dp)
-            .clickable { isExpanded = !isExpanded }
+            .clickable {
+                isExpanded = !isExpanded
+
+                memeMatch.add(meme)
+
+                if (!validateMatch()) {
+                    CoroutineScope(Dispatchers.Main).launch {
+                        delay(2000)
+                        isExpanded = !isExpanded
+                    }
+                }
+            }
     ) {
 
         Column {
@@ -199,6 +240,11 @@ fun MemeCard(meme: Meme, isStartGame: Boolean) {
                         Modifier
                             .height(80.dp)
                             .fillMaxWidth()
+                            .border(
+                                2.dp,
+                                color = MaterialTheme.colors.secondaryVariant,
+                                shape = CircleShape
+                            )
                             .clipToBounds()
 
                     )
@@ -215,7 +261,6 @@ fun MemeCard(meme: Meme, isStartGame: Boolean) {
                             .clipToBounds()
 
                     )
-
                 }
                 else -> {
                     Text(
@@ -231,6 +276,27 @@ fun MemeCard(meme: Meme, isStartGame: Boolean) {
             }
         }
     }
+}
+
+fun validateMatch(): Boolean {
+
+    var isMatched = false
+
+    if (memeMatch.size != 2) {
+        return !isMatched
+    }
+
+    if (memeMatch.first() == memeMatch.last()) {
+        println("Match!")
+        isMatched = true
+        memeMatch.clear()
+    } else {
+        println("Not Match!")
+        isMatched = false
+        memeMatch.removeAt(1)
+    }
+
+    return isMatched
 }
 
 @ExperimentalFoundationApi
